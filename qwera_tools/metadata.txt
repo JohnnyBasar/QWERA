@@ -1,6 +1,6 @@
 [general]
 name=QWERA Toolbox
-qgisMinimumVersion=3.40
+qgisMinimumVersion=3.28
 qgisMaximumVersion=3.99
 description=Open-source toolbox for Wind Erosion Risk Assessment (QWERA) – implementing the modular workflow of Funk & Völker (2024) and DIN 19706:2013-02. Includes automated DWD data retrieval, wind-field simulation, soil erodibility, protection mapping, and final risk assessment.
 version=0.2.0
