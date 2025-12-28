@@ -75,18 +75,18 @@ MethodsX, 13, 103006
 https://doi.org/10.1016/j.mex.2024.103006
 
 Funk, R., Völker, L. & Deumlich, D. (2023):
-Landscape structure model based estimation of the wind erosion risk in Brandenburg, Germany.
+*Landscape structure model based estimation of the wind erosion risk in Brandenburg, Germany.*
 Aeolian Research, 62, 100878
 https://doi.org/10.1016/j.aeolia.2023.100878
 
 DIN (2013):
-DIN 19706:2013-02, Bodenbeschaffenheit – Ermittlung der Erosionsgefährdung von Böden durch Wind.
+*DIN 19706:2013-02, Bodenbeschaffenheit – Ermittlung der Erosionsgefährdung von Böden durch Wind.*
 DIN Media GmbH, Berlin.
 
 Deutscher Wetterdienst (2025):
-Wetter und Klima – Deutscher Wetterdienst – Startseite.
-https://www.dwd.de/DE/Home/home_node.html
- (abgerufen am 24.11.2025)
+*Wetter und Klima – Deutscher Wetterdienst – Startseite.*
+https://www.dwd.de/DE/Home/home_node.html (abgerufen am 24.11.2025)
+
 ---
 
 ## License
