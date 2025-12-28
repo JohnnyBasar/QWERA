@@ -14,4 +14,4 @@
 If the toolbox is not visible after restarting QGIS, re-enable it in the plugin manager.
 
 ## Dependencies
-All dependencies are packed within the plugin ZIP; no additional libraries are required after installation.
+This version avoids heavy dependencies and is implemented exclusively using native QGIS and Python functionality.

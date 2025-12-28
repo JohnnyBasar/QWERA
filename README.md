@@ -10,7 +10,12 @@ reproducible, and non-proprietary QGIS environment.
 
 QWERA was developed as part of a **Master’s thesis** and aims to provide a
 scientifically sound reference implementation of WERA in QGIS using only
-open-source components.
+open-source components. 
+
+Tools cover: data acquisition from DWD, topography-based wind shelter modeling, 
+soil erodibility mapping following DIN 19706, and the derivation of wind-erosion 
+susceptibility and field-level risk shares. All modules are fully integrated in QGIS 
+and tested for version 3.44 (Solothurn). This version is free of heavy dependencies.
 
 ---
 
@@ -69,6 +74,19 @@ Funk, R. & Völker, L. (2024):
 MethodsX, 13, 103006  
 https://doi.org/10.1016/j.mex.2024.103006
 
+Funk, R., Völker, L. & Deumlich, D. (2023):
+Landscape structure model based estimation of the wind erosion risk in Brandenburg, Germany.
+Aeolian Research, 62, 100878
+https://doi.org/10.1016/j.aeolia.2023.100878
+
+DIN (2013):
+DIN 19706:2013-02, Bodenbeschaffenheit – Ermittlung der Erosionsgefährdung von Böden durch Wind.
+DIN Media GmbH, Berlin.
+
+Deutscher Wetterdienst (2025):
+Wetter und Klima – Deutscher Wetterdienst – Startseite.
+https://www.dwd.de/DE/Home/home_node.html
+ (abgerufen am 24.11.2025)
 ---
 
 ## License
