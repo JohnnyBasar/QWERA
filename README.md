@@ -65,6 +65,9 @@ The full user manual and detailed technical documentation are provided in the
 
 👉 Start here: [`docs/index.md`](docs/index.md)
 
+Version history and changes are documented in [CHANGELOG.md](CHANGELOG.md).
+
+
 ---
 
 ## Citation
