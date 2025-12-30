@@ -13,4 +13,4 @@ experimental=False
 deprecated=False
 hasProcessingProvider=True
 tags=wind erosion,soil,erosion risk,landscape structure,protection,wind statistics,DWD,WERA,QGIS,open source
-changelog= 0.2.0: Updated Wind rose plots. Now wind speed classes are reduced for better visual experience. Added time period underneath title, mean wind speed and peak wind direction. Other fixes.<br>0.1.0: Version without dependencies. Own DWD-Backend and parser. <br>Initial release: complete workflow integration of WERA modules (Tools 0–5, DWD Downloader, auxiliary converters)
+changelog= 0.2.1: pre-release. Fixed some description errors. Updated and standardized the Tool Icons. <br>0.2.0: Updated Wind rose plots. Now wind speed classes are reduced for better visual experience. Added time period underneath title, mean wind speed and peak wind direction. Other fixes.<br>0.1.0: Version without dependencies. Own DWD-Backend and parser. <br>Initial release: complete workflow integration of WERA modules (Tools 0–5, DWD Downloader, auxiliary converters)
