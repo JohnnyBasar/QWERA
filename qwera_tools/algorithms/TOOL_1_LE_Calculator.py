@@ -52,7 +52,6 @@ class TOOLBOX_1(QgsProcessingAlgorithm):
     
     def shortHelpString(self):
         return """
-            <h2>Description</h2>
             <p>
             This tool calculates the height difference <b>DSM − DEM</b> (Digital Surface Model minus Digital Elevation Model). Optionally, all cells located inside polygons of a given vector layer (e.g., field blocks) can be set to zero. 
             Polygon layers are reprojected (warped) to the DGM’s CRS if needed. Bilinear Method is used for the raster transformation. To avoid interpolation artefacts and to have more controll it might be an advantage to allign the raster inputs in advance.
