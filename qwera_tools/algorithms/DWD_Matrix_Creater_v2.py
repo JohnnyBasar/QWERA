@@ -6,7 +6,6 @@ except Exception:
 
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtGui import QImage
 from qgis.core import (
     QgsProcessing,
     QgsProcessingAlgorithm,
@@ -89,7 +88,7 @@ class DwdWindFrequency(QgsProcessingAlgorithm):
         return "dwd_wind_frequency"
 
     def displayName(self):
-        return self.tr("DWD – Downloader and Wind Frequency Matrices Creater")
+        return self.tr("Tool 0.2.2: DWD – Downloader and Wind Frequency Matrices Creator")
 
     def group(self):
         return ("Additional Tools")
@@ -109,8 +108,7 @@ class DwdWindFrequency(QgsProcessingAlgorithm):
             <h2>Standards & References</h2>
             <dt><ul>
             <li><b><a href="https://www.dwd.de/EN/Home/home_node.html">Deutscher Wetterdienst (DWD) Open Data</a></b> — official meteorological observation source.</li>
-            <li><b><a href="https://pypi.org/project/wetterdienst/">Wetterdienst Python package</a></b> — used for automated DWD data requests.</li>
-            <li><b><a href="https://www.sciencedirect.com/science/article/pii/S2215016124004576">Funk &amp; V&ouml;lker (2024)</a></b>, “A GIS-toolbox for a landscape structure based Wind Erosion Risk Assessment (WERA)” — describes the methodological context of using DWD wind statistics for erosion risk modeling.</li>
+            <li><b><a href="https://www.sciencedirect.com/science/article/pii/S2215016124004576">Funk &amp; V&ouml;lker (2024)</a></b>, “A GIS-toolbox for a landscape structure based Wind Erosion Risk Assessment (WERA)” — describes the methodological context of using DWD wind statistics for erosion risk modelling.</li>
             </ul></dt>
 
         
@@ -122,13 +120,13 @@ class DwdWindFrequency(QgsProcessingAlgorithm):
             <li><b>Start / End date</b> — UTC time period for data retrieval.</li>
             <li><b>Temporal resolution</b> — 10-minute, hourly, daily, or monthly.</li>
             <li><b>Wind mode</b> — Either “mean wind speed” or “maximum wind gust” can be selected. If “maximum wind gust” has been selected it overwrites the Temporal resolution since wind gust data is only available for the 10-minute resolution.</li>
-            <li><b>Number of sectors</b> — Descriptes the number of equal sectores the direction rose will be devided in. e.g. 36 for 10° resolution. Must be between 4 and 72. Recommented is 36. </li>
-            <li><b>Speed class limits</b> — optional manual bin limits (m/s), otherwise auto-binned. (e.g. 2,6,8,10,15,...)</li>
+            <li><b>Number of sectors</b> — Describes the number of equal sectors the direction rose will be divided in. e.g., 36 for 10° resolution. Must be between 4 and 72. Recommended is 36. </li>
+            <li><b>Speed class limits</b> — optional manual bin limits (m/s), otherwise auto-binned. (e.g., 2,6,8,10,15, ...)</li>
             <li><b>Auto-binning step size</b> — step size (m/s) if classes are not defined.</li>
-            <li><b>Month filter</b> — comma-separated months (1–12) for custom aggregation. (e.g. 3,4,5, aggregats only March, April, and May throughout the years)</li>
+            <li><b>Month filter</b> — comma-separated months (1–12) for custom aggregation. (e.g., 3,4,5, aggregates only March, April, and May throughout the years)</li>
             <li><b>Group stations</b> — treat all selected stations as one (for regional averages).</li>
             <li><b>Output folder</b> — directory for all CSV and PNG results.</li>
-            <li><b>Windrose plots</b> — optional visual output (one PNG per station).</li>
+            <li><b>Wind rose plots</b> — optional visual output (one PNG per station).</li>
             <li><b>Filename prefix</b> — custom name prefix for exported files.</li>
             </ul></dt>
 
@@ -146,7 +144,7 @@ class DwdWindFrequency(QgsProcessingAlgorithm):
             <dt><ul>
             <li><b>Raw data CSV</b> — combined file of all wind observations (optional).</li>
             <li><b>Per-station raw CSVs</b> — one file per station (optional).</li>
-            <li><b>Windrose PNGs</b> — one per station if plotting is enabled.</li>
+            <li><b>Wind rose PNGs</b> — one per station if plotting is enabled.</li>
             </ul></dt>
 
             <h2>Notes</h2>
@@ -820,7 +818,7 @@ class DwdWindFrequency(QgsProcessingAlgorithm):
                     # else:
                     #     period_str = f"{start_dt:%b %Y} – {end_dt:%b %Y}"   
     
-                    ax.set_title(f"Wind rose (frequency %) — Station: {sid}", 
+                    ax.set_title(f"Wind rose (frequency %) — DWD-Station: {sid}", 
                                  va="bottom", 
                                  y=1.1, 
                                  fontsize=12)

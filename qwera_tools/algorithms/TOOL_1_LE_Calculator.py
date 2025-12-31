@@ -52,22 +52,23 @@ class TOOLBOX_1(QgsProcessingAlgorithm):
     
     def shortHelpString(self):
         return """
+            <h2>Description</h2>
             <p>
             This tool calculates the height difference <b>DSM − DEM</b> (Digital Surface Model minus Digital Elevation Model). Optionally, all cells located inside polygons of a given vector layer (e.g., field blocks) can be set to zero. 
-            Polygon layers are reprojected (warped) to the DGM’s CRS if needed. Bilinear Method is used for the raster transformation. To avoid interpolation artefacts and to have more controll it might be an advantage to allign the raster inputs in advance.
+            Polygon layers are reprojected (warped) to the DGM’s CRS if needed. Bilinear Method is used for the raster transformation. To avoid interpolation artefacts and to have more control it might be an advantage to align the raster inputs in advance.
             The generated grid contains the real heights of the landscape elements. The result is written to the defined output raster and automatically loaded into QGIS.
             </p>
 
             <h2>Standards & References</h2>
             <dt><ul>
             <li><b>GDAL Raster Calculator</b> — used for computing the difference (DOM − DGM) and applying polygon masks.</li>
-            <li><b><a href="https://www.sciencedirect.com/science/article/pii/S2215016124004576">Funk &amp; V&ouml;lker (2024)</a></b>, “A GIS-toolbox for a landscape structure based Wind Erosion Risk Assessment (WERA)” — describes the methodological context of using DWD wind statistics for erosion risk modeling.</li>
+            <li><b><a href="https://www.sciencedirect.com/science/article/pii/S2215016124004576">Funk &amp; V&ouml;lker (2024)</a></b>, “A GIS-toolbox for a landscape structure based Wind Erosion Risk Assessment (WERA)” — describes the methodological context of using DWD wind statistics for erosion risk modelling.</li>
             </ul></dt>
 
             <h2>Inputs</h2>
             <dt><ul>
             <li><b>DEM (reference grid)</b> — raster layer defining CRS, extent, and cell size.</li>
-            <li><b>DSM (surface model)</b> — raster layer to be subtracted from the DGM; should match grid alignment. Otherwise will be warped.</li>
+            <li><b>DSM (surface model)</b> — raster layer to be subtracted from the DGM; should match grid alignment. Otherwise, it will be warped.</li>
             <li><b>Field blocks (optional)</b> — polygon layer; all covered cells are set to zero in the output raster.</li>
             </ul></dt>
 
@@ -79,7 +80,7 @@ class TOOLBOX_1(QgsProcessingAlgorithm):
 
             <h2>Notes</h2>
             <dt><ul>
-            <li>NoData values in either input are preserved during subtraction.</li>
+            <li>NoData values are preserved in both inputs during subtraction.</li>
             <li>ChatGPT was used to create this plugin.</li>
             <li>Tested with QGIS 3.44.x (Python 3.12, Windows).</li>
             </ul></dt>

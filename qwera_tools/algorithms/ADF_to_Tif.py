@@ -48,6 +48,7 @@ class ADF2TIFF_Batch(QgsProcessingAlgorithm):
 
     def shortHelpString(self):
         return """
+            <h2>Description</h2>
             <p>
             This tool batch-converts <b>ArcGIS/Info GRID</b> datasets (<code>w001001.adf</code>) into tiled, LZW-compressed <b>GeoTIFF</b> files.
             It scans an input folder <b>recursively</b>, derives each output name from the GRID’s parent folder name (with an optional prefix stripped), and writes efficient TIFFs (uses <code>BigTIFF</code> automatically when needed).

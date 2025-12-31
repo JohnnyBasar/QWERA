@@ -42,7 +42,7 @@ class tool_4_susceptibility_of_soils_to_wind_erosion(QgsProcessingAlgorithm):
         return "tool_4_susceptibility_of_soils_to_wind_erosion"
 
     def displayName(self):
-        return "Tool 4: Susceptibility of soils to wind erosion - Mapper"
+        return "Tool 4: Susceptibility of soils to wind erosion Mapper"
 
     # def group(self):
     #     return "TOOLBOX QWERA"
@@ -66,7 +66,7 @@ class tool_4_susceptibility_of_soils_to_wind_erosion(QgsProcessingAlgorithm):
             <h2>Standards & References</h2>
             <dt><ul>
             <li><b>DIN 19706:2013-02</b> — soil susceptibility to wind erosion; basis for the erodibility concept.</li>
-            <li><b><a href="https://www.sciencedirect.com/science/article/pii/S2215016124004576">Funk &amp; V&ouml;lker (2024)</a></b>, “A GIS-toolbox for a landscape structure based Wind Erosion Risk Assessment (WERA)” — describes the methodological context of using DWD wind statistics for erosion risk modeling.</li>
+            <li><b><a href="https://www.sciencedirect.com/science/article/pii/S2215016124004576">Funk &amp; V&ouml;lker (2024)</a></b>, “A GIS-toolbox for a landscape structure based Wind Erosion Risk Assessment (WERA)” — describes the methodological context of using DWD wind statistics for erosion risk modelling.</li>
             </ul></dt>
 
             <h2>Inputs</h2>
@@ -91,7 +91,7 @@ class tool_4_susceptibility_of_soils_to_wind_erosion(QgsProcessingAlgorithm):
 
             <h2>Notes</h2>
             <dt><ul>
-            <li>Both inputs must share the same CRS; otherwise an error is raised.</li>
+            <li>Both inputs must share the same CRS. Otherwise, an error is raised.</li>
             <li>The tool attempts <code>native:rastercalc</code> and falls back to <code>qgis:rastercalculator</code> when needed.</li>
             <li>ChatGPT was used to create this plugin.</li>
             <li>Tested with QGIS 3.44.x (Python 3.12, Windows).</li>

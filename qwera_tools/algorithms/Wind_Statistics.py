@@ -7,7 +7,7 @@ TOOL X: Wind statistics & shadow parameters
 - Output: WERA-style CSV with
   (Record, Bez, Azimut, Altitude, Constant)
   to be used as input for:
-  TOOL 2: Windshade Calculator (QWERA, Funk & Völker 2024, Modul 2)
+  TOOL 2: Wind Shade Calculator (QWERA, Funk & Völker 2024, Modul 2)
 """
 
 import os
@@ -51,7 +51,7 @@ class WIND_STATS(QgsProcessingAlgorithm):
         return "qwera_wind_statistics"
 
     def displayName(self):
-        return self.tr("Wind shadow parameters")
+        return self.tr("Tool 0.4.0: Wind Shadow Parameters")
 
     def group(self):
         return "Additional Tools"
@@ -63,7 +63,7 @@ class WIND_STATS(QgsProcessingAlgorithm):
         return """
             <h2>Description</h2>
             <p>
-            This tool processes a <b>custom aggregated wind matrix</b> from the QWERA <i>DWD – Downloader and Wind Frequency Matrices Creater</i> - Tool or the <i>Wind Frequency Matrices from Table</i> - Tool to compute <b>wind statistics</b>, <b>transport-weighted protection lengths</b> and <b>zone-specific azimuth/altitude parameters</b> following the WERA approach by Funk &amp; V&ouml;lker (2024). The output is a <b>WERA-style table</b> that can be used directly as input for <i>Tool 2: Windshade Calculator</i>.
+            This tool processes a <b>custom aggregated wind matrix</b> from the QWERA <i>DWD – Downloader and Wind Frequency Matrices Creator</i> - Tool or the <i>Wind Frequency Matrices from Table</i> - Tool to compute <b>wind statistics</b>, <b>transport-weighted protection lengths</b> and <b>zone-specific azimuth/altitude parameters</b> following the WERA approach by Funk &amp; V&ouml;lker (2024). The output is a <b>WERA-style table</b> that can be used directly as input for <i>Tool 2: Wind Shade Calculator</i>.
             </p>
 
             <h2>Standards & References</h2>
@@ -88,7 +88,7 @@ class WIND_STATS(QgsProcessingAlgorithm):
 
             <h2>Outputs</h2>
             <dt><ul>
-            <li><b>WERA-style parameter table (CSV)</b>: This table is designed to be used directly as input for <b>QWERA Toolbox &rarr; Tool 2: Windshade Calculator</b>. Each row represents one protection zone for one wind direction, with fields:
+            <li><b>WERA-style parameter table (CSV)</b>: This table is designed to be used directly as input for <b>QWERA Toolbox &rarr; Tool 2: Wind Shade Calculator</b>. Each row represents one protection zone for one wind direction, with fields:
                 <dd><ul style="list-style-type:square;">
                 <li><code>Record</code> — running ID.</li>
                 <li><code>Bez</code> — zone label (e.g. <code>r45a</code> … <code>r45f</code>).</li>

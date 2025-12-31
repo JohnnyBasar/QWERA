@@ -95,7 +95,7 @@ class tool_0_3_soil_erodibility(QgsProcessingAlgorithm):
         return "tool_0_3_soil_erodibility"
 
     def displayName(self):
-        return "Soil Erodibility Mapper"
+        return "Tool 0.5.0: Soil Erodibility Mapper"
 
     def group(self): 
         return ("Additional Tools")
@@ -113,7 +113,7 @@ class tool_0_3_soil_erodibility(QgsProcessingAlgorithm):
             This tool creates a <b>soil erodibility map</b> by combining information on <b>soil texture/type</b> and <b>soil organic matter (SOM)</b>.
             The inputs (vector layers) are classified and rasterized onto a reference DEM grid to produce a final raster of erodibility classes.
             The specified raster is used as a template for the resolution and extent of the output grid.
-            The classification will be carried out according to either an user-provided CSV lookup or an internal DIN-based rule set (<b>DIN 19706</b> ). 
+            Classification is performed using either a user-provided CSV lookup or an internal DIN-based rule set (<b>DIN 19706</b>). 
             </p>
 
             <h2>Standards & References</h2>

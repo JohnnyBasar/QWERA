@@ -70,7 +70,7 @@ class DwdStationFinder(QgsProcessingAlgorithm):
         return "dwd_station_finder"
 
     def displayName(self):
-        return self.tr("DWD Station Finder (Wind)")
+        return self.tr("Tool 0.1.0: DWD Station Finder (Wind)")
 
     def group(self):
         return "Additional Tools"
@@ -86,6 +86,7 @@ class DwdStationFinder(QgsProcessingAlgorithm):
 
     def shortHelpString(self):
         return """
+            <h2>Description</h2>
             <p>
             This tool queries and lists <b>Deutscher Wetterdienst (DWD)</b> weather stations providing <b>wind data</b> of a choosable temporal resolution (wind speed and wind direction). 
             Users can search by <b>station name</b> and/or <b>map extent</b>, optionally restricted by date range. 
@@ -95,8 +96,7 @@ class DwdStationFinder(QgsProcessingAlgorithm):
             <h2>Standards & References</h2>
             <dt><ul>
             <li><b><a href="https://www.dwd.de/EN/Home/home_node.html">Deutscher Wetterdienst (DWD) Open Data</a></b> — official meteorological observation source.</li>
-            <li><b><a href="https://pypi.org/project/wetterdienst/">Wetterdienst Python package</a></b> — provides API access to DWD observation metadata and data.</li>
-            <li><b><a href="https://www.sciencedirect.com/science/article/pii/S2215016124004576">Funk &amp; V&ouml;lker (2024)</a></b>, “A GIS-toolbox for a landscape structure based Wind Erosion Risk Assessment (WERA)” — outlines the scientific context for integrating DWD stations in wind-erosion modeling.</li>
+            <li><b><a href="https://www.sciencedirect.com/science/article/pii/S2215016124004576">Funk &amp; V&ouml;lker (2024)</a></b>, “A GIS-toolbox for a landscape structure based Wind Erosion Risk Assessment (WERA)” — outlines the scientific context for integrating DWD stations in wind-erosion modelling.</li>
             </ul></dt>
 
             <h2>Inputs</h2>

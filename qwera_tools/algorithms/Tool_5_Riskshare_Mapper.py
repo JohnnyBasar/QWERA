@@ -33,7 +33,7 @@ class TOOLBOX_5_FeldbloeckeRiskShare(QgsProcessingAlgorithm):
         return "tool5_feldbloecke_riskshare"
 
     def displayName(self):
-        return "Tool 5: Field Blocks statistics"
+        return "Tool 5: Field Blocks Statistics"
 
     # def group(self):
     #     return "QWERA – Winderosion"
@@ -43,8 +43,9 @@ class TOOLBOX_5_FeldbloeckeRiskShare(QgsProcessingAlgorithm):
 
     def shortHelpString(self):
         return """
+            <h2>Description</h2>
             <p>
-            The tool calculates the area fraction within a polygon (e.g. field block polygon, but any structure polygone layer is fine) above a selectable threshold value based on a wind-erosion risk raster (from <i>Tool 4: Susceptibility of soils to wind erosion - Mapper</i>). It determines the proportion of each polygon’s surface where raster values are greater than or equal to a user-defined threshold (e.g. ≥ 5). The threshold refers to the risk classes according to the erodibility × protection rules:
+            The tool calculates the area fraction within a polygon (e.g., field block polygon, but any structure polygon layer is fine) above a selectable threshold value based on a wind-erosion risk raster (from <i>Tool 4: Susceptibility of soils to wind erosion - Mapper</i>). It determines the proportion of each polygon’s surface where raster values are greater than or equal to a user-defined threshold (e.g., ≥ 5). The threshold refers to the risk classes according to the erodibility × protection rules:
 
             Results are written to a new polygon layer with additional statistical fields.
             </p>
@@ -52,7 +53,7 @@ class TOOLBOX_5_FeldbloeckeRiskShare(QgsProcessingAlgorithm):
             <h2>Standards & References</h2>
             <dt><ul>
             <li><b>DIN 19706:2013-02</b> — Soil susceptibility to wind erosion; defines the underlying risk-scale concept.</li>
-            <li><b><a href="https://www.sciencedirect.com/science/article/pii/S2215016124004576">Funk &amp; V&ouml;lker (2024)</a></b>, “A GIS-toolbox for a landscape structure based Wind Erosion Risk Assessment (WERA)” — describes the methodological context of using DWD wind statistics for erosion risk modeling.</li>
+            <li><b><a href="https://www.sciencedirect.com/science/article/pii/S2215016124004576">Funk &amp; V&ouml;lker (2024)</a></b>, “A GIS-toolbox for a landscape structure based Wind Erosion Risk Assessment (WERA)” — describes the methodological context of using DWD wind statistics for erosion risk modelling.</li>
             </ul></dt>
 
 
@@ -69,7 +70,7 @@ class TOOLBOX_5_FeldbloeckeRiskShare(QgsProcessingAlgorithm):
                 <li><i>Class 5</i> — very high</li>
                 </ul></dd>
             <dt><ul>
-            <li><b>Output</b> — Directory and name for the resulting polygone layer.</li>
+            <li><b>Output</b> — Directory and name for the resulting polygon layer.</li>
             </ul></dt>
 
             <h2>Outputs</h2>
@@ -77,10 +78,10 @@ class TOOLBOX_5_FeldbloeckeRiskShare(QgsProcessingAlgorithm):
             <li><b>Enhanced field-block layer</b> with additional attributes: </li>
                 <dd><ul style="list-style-type:square;">
                 <li><i>risk_count</i> — number of evaluated raster cells</li>
-                <li><i>risk_sum</i> — count of cells classified as by tresholdvalue</li>
+                <li><i>risk_sum</i> — count of cells classified as by threshold value</li>
                 <li><i>area_m2</i> — total polygon area (m²)</li>
-                <li><i>area_high_m2</i> — area over treshold (m²)</li>
-                <li><i>pct_high</i> — percentage of treshold area</li>
+                <li><i>area_high_m2</i> — area over threshold (m²)</li>
+                <li><i>pct_high</i> — percentage of threshold area</li>
                 <li><i>thr_val</i> — threshold used</li>
                 </ul></dd>
             <dt><ul>

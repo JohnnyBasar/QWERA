@@ -70,19 +70,20 @@ class TOOLBOX_2_HILLSHADES(QgsProcessingAlgorithm):
         return "toolbox_2_windshade_calculator"
 
     def displayName(self):
-        return "Tool 2: Windshade Calculator"
+        return "Tool 2: Wind Shade Calculator"
 
     def shortHelpString(self):
         return """
+            <h2>Description</h2>
             <p>
             This tool generates <b>shadow masks</b> from the Landscape elements raster (<i>Tool 1: Landscape Elements Calculator</i>) and a  parameter table with <b>azimuth</b>, <b>altitude</b>, and a per-run <b>constant</b> (<i>Wind statistics & shadow parameters</i> Tool). 
-            Each row yields one GeoTIFF via an <b>octant-based shadow-scan</b>; sunlit cells are 0.0 and shadowed cells take the given constant (Float32). This refers directly to the approch presented by <b>Funk &amp; V&ouml;lker (2024)</b>. For each given wind direction 5 grids for the 5 wind protection zones are generated. (+ 1 upwind zone)
-            The number of octants is <b>inferred automatically</b> from the azimuth list when it is equally spaced; otherwise a robust default is used.
+            Each row yields one GeoTIFF via an <b>octant-based shadow-scan</b>; sunlit cells are 0.0 and shadowed cells take the given constant (Float32). This refers directly to the approach presented by <b>Funk &amp; V&ouml;lker (2024)</b>. For each given wind direction 5 grids for the 5 wind protection zones are generated. (+ 1 upwind zone)
+            The number of octants is <b>inferred automatically</b> from the azimuth list when it is equally spaced. Otherwise, a robust default is used.
             </p>
 
             <h2>Standards & References</h2>
             <dt><ul>
-            <li><b><a href="https://www.sciencedirect.com/science/article/pii/S2215016124004576">Funk &amp; V&ouml;lker (2024)</a></b>, “A GIS-toolbox for a landscape structure based Wind Erosion Risk Assessment (WERA)” — describes the methodological context of using DWD wind statistics for erosion risk modeling.</li>
+            <li><b><a href="https://www.sciencedirect.com/science/article/pii/S2215016124004576">Funk &amp; V&ouml;lker (2024)</a></b>, “A GIS-toolbox for a landscape structure based Wind Erosion Risk Assessment (WERA)” — describes the methodological context of using DWD wind statistics for erosion risk modelling.</li>
             </ul></dt>
             
             <h2>Input</h2>
@@ -103,7 +104,7 @@ class TOOLBOX_2_HILLSHADES(QgsProcessingAlgorithm):
             
             <h2>Notes</h2>
             <dt><ul>
-            <li>DEM CRS must be metric; otherwise processing is refused.</li>
+            <li>DEM CRS must be metric. Otherwise, processing is refused.</li>
             <li>Azimuth normalization treats 360° as 0°; duplicated/invalid entries are ignored when inferring spacing.</li>
             <li>Edge bias is applied internally in the scan; maximum distance is unbounded within the DEM extent.</li>
             <li>ChatGPT was used to create this plugin.</li>

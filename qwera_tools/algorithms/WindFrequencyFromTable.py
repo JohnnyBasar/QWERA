@@ -9,7 +9,7 @@ Wind Frequency Matrices from Generic Table (no station ID)
     * if missing → only total frequencies are computed
 - The whole table is treated as ONE dataset (no per-station logic)
 - Calculates wind-frequency matrices (by direction sector and speed class)
-- Exports speed statistics, frequency tables (long + matrix) and optional windrose PNGs
+- Exports speed statistics, frequency tables (long + matrix) and optional wind rose PNGs
 
 Tested with QGIS 3.44.x (Python 3.12, Windows)
 """
@@ -85,7 +85,7 @@ class WindFrequencyFromTable(QgsProcessingAlgorithm):
         return "wind_frequency_from_table_simple"
 
     def displayName(self):
-        return self.tr("Wind Frequency Matrices from Table")
+        return self.tr("Tool 0.3.0: Wind Frequency Matrices from Table")
 
     def group(self):
         return ("Additional Tools")
@@ -95,10 +95,10 @@ class WindFrequencyFromTable(QgsProcessingAlgorithm):
 
     def shortHelpString(self):
         return """
-            <p>
             <h2>Description</h2>
+            <p>
             This tool calculates <b>wind-frequency matrices</b> (by direction sector and speed class) from an input csv-table, and exports results in multiple CSV formats. 
-            It supports various aggregation options such as monthly, seasonal, and user-defined “custom”  — optionally visualized as wind-rose plots. The input table needs at least the following columns: wind speed, wind direction. 
+            It supports various aggregation options such as monthly, seasonal, and user-defined “custom”  — optionally visualized as wind rose plots. The input table needs at least the following columns: wind speed, wind direction. 
             </p>
 
             <h2>Standards & References</h2>
@@ -112,13 +112,13 @@ class WindFrequencyFromTable(QgsProcessingAlgorithm):
             <li><b>Wind speed (m/s)</b>: Field storing the wind speed information in meter per second.</li>            
             <li><b>Wind direction (°)</b>: Field storing the wind direction information in degrees.</li>
             <li><b>Datetime field</b>: Optional parameter for a datetime based aggregation. If empty, all data will be aggregated.</li>
-            <li><b>Number of sectors</b> — Descriptes the number of equal sectores the direction rose will be devided in. e.g. 36 for 10° resolution. Must be between 4 and 72. Recommented is 36. </li>
-            <li><b>Speed class limits</b> — optional manual bin upper limits (m/s), otherwise auto-binned. (e.g. 2,6,8,10,15,...)</li>
+            <li><b>Number of sectors</b> — Describes the number of equal sectors the direction rose will be divided in. e.g., 36 for 10° resolution. Must be between 4 and 72. Recommented is 36. </li>
+            <li><b>Speed class limits</b> — optional manual bin upper limits (m/s), otherwise auto-binned. (e.g., 2,6,8,10,15, ...)</li>
             <li><b>Auto-binning step size</b> — step size (m/s) if parameter Speed class limits are not defined.</li>
-            <li><b>Month filter</b> — comma-separated months (1–12) for custom aggregation. (e.g. 3,4,5, aggregats only March, April and May throughout the years)</li>
+            <li><b>Month filter</b> — comma-separated months (1–12) for custom aggregation. (e.g., 3,4,5, aggregates only March, April and May throughout the years)</li>
             <li><b>Group stations</b> — treat all selected stations as one (for regional averages).</li>
-            <li><b>Output folder</b> — directory for all CSV and PNG results. Non-temporary directory is recomended.</li>
-            <li><b>Windrose plots</b> — optional visual output (one PNG per station).</li>
+            <li><b>Output folder</b> — directory for all CSV and PNG results. Non-temporary directory is recommended.</li>
+            <li><b>Wind rose plots</b> — optional visual output (one PNG per station).</li>
             <li><b>Filename prefix</b> — custom name prefix for exported files.</li>
             </ul></dt>
 
@@ -136,7 +136,7 @@ class WindFrequencyFromTable(QgsProcessingAlgorithm):
             <dt><ul>
             <li><b>Raw data CSV</b> — combined file of all wind observations (optional).</li>
             <li><b>Per-station raw CSVs</b> — one file per station (optional).</li>
-            <li><b>Windrose PNGs</b> — one per station if plotting is enabled.</li>
+            <li><b>Wind rose PNGs</b> — one per station if plotting is enabled.</li>
             </ul></dt>
 
             <h2>Notes</h2>
@@ -443,6 +443,141 @@ class WindFrequencyFromTable(QgsProcessingAlgorithm):
 
         feedback.reportError(f"Could not parse datetime value: '{s}'")
         return None
+    
+
+    @staticmethod
+    def _plot_windrose_png(rows, n_sect, out_png, feedback, period_str=None, title=None, out_dir=None, prefix=None):
+        import math as _math
+        import matplotlib.pyplot as plt
+
+        # fixed classes for plotting (as in DWD tool)
+        plot_edges = [0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 20.0, float("inf")]
+        fr_long = WindFrequencyFromTable._freq_long_plain(rows, n_sect, plot_edges, extra_dims=None)
+        if not fr_long:
+            return
+
+        width = 2 * _math.pi / n_sect
+        sectors = sorted({r["sector"] for r in fr_long})
+        vclasses = sorted({r["vclass"] for r in fr_long})
+
+        M = {s: {vc: 0.0 for vc in vclasses} for s in sectors}
+        for r in fr_long:
+            M[r["sector"]][r["vclass"]] = r["pct"]
+
+        theta = [_math.radians((360.0 / n_sect) * i + (360.0 / n_sect) / 2) for i in range(n_sect)]
+        sectors_ordered = [round((i + 1) * (360.0 / n_sect), 6) for i in range(n_sect)]
+
+        try:
+            import numpy as _np
+            bottoms = _np.zeros(len(theta))
+        except Exception:
+            bottoms = [0.0] * len(theta)
+
+        fig = plt.figure(figsize=(7, 7))
+        ax = plt.subplot(111, polar=True)
+        ax.set_theta_zero_location("N")
+        ax.set_theta_direction(-1)
+
+        for vc in vclasses:
+            vals = [M[s].get(vc, 0.0) for s in sectors_ordered]
+            ax.bar(theta, vals, width=width, bottom=bottoms, align="center")
+            try:
+                bottoms = [b + v for b, v in zip(bottoms, vals)]
+            except Exception:
+                pass
+
+        ax.set_title(title or "Wind rose (frequency %) — full dataset", va="bottom", y=1.10, fontsize=12)
+
+        if period_str:
+            ax.text(
+                0.5, 1.07, period_str,
+                transform=ax.transAxes, ha="center", va="bottom",
+                fontsize=11, color="0.35"
+            )
+
+        ax.set_rlabel_position(225)
+
+        # legend labels (≤ upper edge; last class > 20)
+        legend_labels = []
+        for vc in vclasses:
+            if _math.isinf(vc):
+                legend_labels.append("> 20")
+            else:
+                legend_labels.append(f"≤ {vc:.0f}")
+
+        leg = ax.legend(
+            legend_labels,
+            title="Wind speed\n [m/s]",
+            loc="upper left",
+            bbox_to_anchor=(1.07, 0.7),
+            frameon=True
+        )
+        leg.get_title().set_fontsize(10)
+
+        # stats box: mean speed + peak direction
+        valid_ff = [r.get("ff") for r in rows if r.get("ff") is not None]
+        mean_ws = (sum(valid_ff) / len(valid_ff)) if valid_ff else float("nan")
+
+        sector_sum = {}
+        for rr in fr_long:
+            s = rr.get("sector")
+            sector_sum[s] = sector_sum.get(s, 0.0) + float(rr.get("pct", 0.0) or 0.0)
+        peak_sector = max(sector_sum, key=sector_sum.get) if sector_sum else None
+
+        def deg_to_compass(deg):
+            dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"]
+            ix = int(round(deg / 22.5)) % 16
+            return dirs[ix]
+
+        if peak_sector is not None:
+            sector_width_deg = 360.0 / n_sect
+            center_deg = (peak_sector - sector_width_deg / 2.0) % 360.0
+            peak_dir_label = deg_to_compass(center_deg)
+        else:
+            peak_dir_label = "n/a"
+
+        stats_text = f"Mean speed: {mean_ws:.2f} m/s\nPeak direction: {peak_dir_label}"
+        ax.text(
+            0.95, 0.0, stats_text,
+            transform=ax.transAxes, ha="left", va="bottom", fontsize=10,
+            bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="0.7")
+        )
+
+        # optional logo (Qt rasterize SVG → temp PNG)
+        tmp_logo = None
+        try:
+            from qgis.PyQt.QtGui import QIcon
+            logo_svg = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "icons", "icon.svg"))
+            if os.path.exists(logo_svg) and out_dir:
+                qicon = QIcon(logo_svg)
+                pix = qicon.pixmap(270, 270)
+                img = pix.toImage()
+                tmp_logo = os.path.join(out_dir, f"{prefix or 'wind'}_qwera_logo_tmp.png")
+                img.save(tmp_logo, "PNG")
+
+                import matplotlib.image as mpimg
+                from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+                logo_arr = mpimg.imread(tmp_logo)
+                oi = OffsetImage(logo_arr, zoom=0.22)
+                ab = AnnotationBbox(
+                    oi, (1.22, 1.22),
+                    xycoords=ax.transAxes,
+                    frameon=False,
+                    box_alignment=(1, 1)
+                )
+                ax.add_artist(ab)
+        except Exception:
+            pass
+        finally:
+            try:
+                if tmp_logo and os.path.exists(tmp_logo):
+                    os.remove(tmp_logo)
+            except Exception as e:
+                feedback.pushInfo(f"Could not delete temporary logo file: {e}")
+
+        fig.tight_layout()
+        fig.savefig(out_png, dpi=180)
+        plt.close(fig)
 
     # ---------- Main ----------
     def processAlgorithm(self, parameters, context, feedback):
@@ -744,67 +879,31 @@ class WindFrequencyFromTable(QgsProcessingAlgorithm):
         # ---- Optional wind-rose PNG ----
         if make_plots:
             try:
-                import math as _math
-                import matplotlib.pyplot as plt
+                import matplotlib.pyplot as plt  # just to test availability
             except Exception as e:
                 feedback.reportError(f"Matplotlib not available – skipping wind-rose plot: {e}")
             else:
-                feedback.pushInfo("Generate wind-rose PNG for the dataset …")
-                width = 2 * _math.pi / n_sect
+                period_str = None
+                if have_dt:
+                    d0 = min(r["date"] for r in ts)
+                    d1 = max(r["date"] for r in ts)
+                    if d0.year == d1.year:
+                        period_str = f"Year {d0:%Y}"
+                    else:
+                        period_str = f"Data from {d0:%Y} to {d1:%Y}"
 
-                fr_long = self._freq_long_plain(ts, n_sect, edges, extra_dims=None)
-                if fr_long:
-                    sectors = sorted({r["sector"] for r in fr_long})
-                    vclasses = sorted({r["vclass"] for r in fr_long})
+                out_png = os.path.join(out_dir, f"{prefix}_windrose.png")
+                self._plot_windrose_png(
+                    ts, n_sect,
+                    out_png=out_png,
+                    feedback=feedback,
+                    period_str=period_str,
+                    title="Wind rose (frequency %) — full dataset",
+                    out_dir=out_dir,
+                    prefix=prefix,
+                )
+                feedback.pushInfo(f"Wind-rose saved: {out_png}")
 
-                    M = {s: {vc: 0.0 for vc in vclasses} for s in sectors}
-                    for r in fr_long:
-                        M[r["sector"]][r["vclass"]] = r["pct"]
-
-                    theta = [
-                        _math.radians((360.0 / n_sect) * i + (360.0 / n_sect) / 2)
-                        for i in range(n_sect)
-                    ]
-                    sectors_ordered = [
-                        round((i + 1) * (360.0 / n_sect), 6) for i in range(n_sect)
-                    ]
-
-                    try:
-                        import numpy as _np
-                        bottoms = _np.zeros(len(theta))
-                    except Exception:
-                        bottoms = [0.0] * len(theta)
-
-                    fig = plt.figure(figsize=(7, 7))
-                    ax = plt.subplot(111, polar=True)
-                    ax.set_theta_zero_location("N")
-                    ax.set_theta_direction(-1)
-
-                    for vc in vclasses:
-                        vals = [M[s].get(vc, 0.0) for s in sectors_ordered]
-                        ax.bar(theta, vals, width=width, bottom=bottoms, align="center")
-                        try:
-                            bottoms = [b + v for b, v in zip(bottoms, vals)]
-                        except Exception:
-                            pass
-
-                    ax.set_title("Wind rose (frequency %) — full dataset", va="bottom", y=1.08)
-                    ax.set_rlabel_position(225)
-                    ax.legend(
-                        [str(v) for v in vclasses],
-                        loc="lower left",
-                        bbox_to_anchor=(1.05, 0.1),
-                    )
-                    fig.tight_layout()
-
-                    out_png = os.path.join(out_dir, f"{prefix}_windrose.png")
-                    try:
-                        fig.savefig(out_png, dpi=180)
-                        feedback.pushInfo(f"Wind-rose saved: {out_png}")
-                    except Exception as e:
-                        feedback.reportError(f"Plot failed: {e}")
-                    finally:
-                        plt.close(fig)
 
         feedback.pushInfo(f"Done. Output folder: {out_dir}")
         return results

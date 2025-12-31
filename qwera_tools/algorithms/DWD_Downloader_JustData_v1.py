@@ -83,7 +83,7 @@ class DwdWindDownloader(QgsProcessingAlgorithm):
         return "dwd_downloader_only"
 
     def displayName(self):
-        return self.tr("DWD – Downloader (just Data)")
+        return self.tr("Tool 0.2.1: DWD – Downloader (just Data)")
 
     def group(self):
         return "Additional Tools"
@@ -102,7 +102,6 @@ class DwdWindDownloader(QgsProcessingAlgorithm):
             <h2>Standards & References</h2>
             <dt><ul>
             <li><b><a href="https://www.dwd.de/EN/Home/home_node.html">Deutscher Wetterdienst (DWD) Open Data</a></b> — official source of meteorological observations in Germany.</li>
-            <li><b><a href="https://pypi.org/project/wetterdienst/">Wetterdienst Python package</a></b> — used for automated data requests from the DWD Observation API.</li>
             <li><b><a href="https://www.sciencedirect.com/science/article/pii/S2215016124004576">Funk &amp; V&ouml;lker (2024)</a></b>, “A GIS-toolbox for a landscape structure based Wind Erosion Risk Assessment (WERA)” — provides the broader methodological framework in which this downloader supports wind statistics for WERA modules.</li>
             </ul></dt>
          
@@ -111,7 +110,7 @@ class DwdWindDownloader(QgsProcessingAlgorithm):
             <dt><ul>
             <li><b>Station layer (optional)</b> — vector layer with station IDs in a chosen field.</li>
             <li><b>Station ID field</b> — the attribute field containing the DWD station identifier.</li>
-            <li><b>Manual station IDs</b> — comma-separated list of IDs (e.g. 04036, 05084).</li>
+            <li><b>Manual station IDs</b> — comma-separated list of IDs (e.g., 04036, 05084).</li>
             <li><b>Start / End date</b> — UTC time range for data download.</li>
             <li><b>Temporal resolution</b> — 10-minute, hourly, daily, or monthly.</li>
             <li><b>Wind mode</b> — Either “mean wind speed” or “maximum wind gust” can be selected. If “maximum wind gust” has been selected it overwrites the Temporal resolution since wind gust data is only available for the 10-minute resolution.</li>
