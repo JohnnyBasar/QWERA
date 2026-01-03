@@ -94,4 +94,10 @@ https://www.dwd.de/DE/Home/home_node.html (abgerufen am 24.11.2025)
 
 ## License
 
-GNU GPL v3 (GPL-3.0). See `LICENSE`.
+- **Source code**: GNU General Public License v3.0 or later (GPL-3.0-or-later)  
+  See `LICENSE`.
+
+- **Documentation and scientific descriptions**:  
+  Creative Commons Attribution 4.0 International (CC BY 4.0)  
+  See `LICENSE-DOCS`.
+
