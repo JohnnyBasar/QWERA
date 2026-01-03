@@ -105,6 +105,7 @@ DIN reference:
 - DIN 19706:2013-02, Bodenbeschaffenheit – Ermittlung der Erosionsgefährdung von Böden durch Wind.
 
 QGIS Plugin development: 
+
 Schultz, J. (2026). *QWERA Toolbox: Open-source QGIS tools for Wind Erosion Risk Assessment (WERA)* (Version 0.2.0).  
 GitHub repository: https://github.com/JohnnyBasar/QWERA
 
