@@ -13,17 +13,17 @@ The versioning follows a simple semantic scheme:
 - Fixed spelling and description errors.
 
 ### Changes
-- Wind rose plots in Tool 0.3.0 are now consistend with the plots from Tool Tool 0.2.2.
-- Added numbering for additional Tools for a better Workflow experience.
-- Standardized the Tool Icons.
+- Wind rose plots in tool 0.3.0 are now consistend with the plots from tool 0.2.2.
+- Added numbering for additional tools for a better Workflow experience.
+- Standardized the tool Icons.
 
 ---
 
 ## [0.2.0] – 2025-12-28
 
 ### Added
-- Initial public release of the QWERA Toolbox
-- Complete implementation of the WERA workflow (Tools 1–5)
+- Initial public release of the QWERA toolbox
+- Complete implementation of the WERA workflow (tools 1–5)
 - Integrated preprocessing tools for DWD wind data
 - Directional wind-frequency matrix generation
 - Landscape-element-based wind protection modelling
