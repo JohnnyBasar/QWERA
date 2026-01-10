@@ -7,6 +7,18 @@ The versioning follows a simple semantic scheme:
 
 ---
 
+## [0.2.1] – 2025-01-10
+
+### Fixes
+- Fixed spelling and description errors.
+
+### Changes
+- Wind rose plots in Tool 0.3.0 are now consistend with the plots from Tool Tool 0.2.2.
+- Added numbering for additional Tools for a better Workflow experience.
+- Standardized the Tool Icons.
+
+---
+
 ## [0.2.0] – 2025-12-28
 
 ### Added
