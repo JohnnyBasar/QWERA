@@ -99,14 +99,14 @@ If you use the QWERA toolbox in scientific work, please cite:
 Underlying WERA publications:
 
 - Funk, R. & Völker, L. (2024): *A GIS-toolbox for a landscape structure based Wind Erosion Risk Assessment (WERA).* MethodsX, 13: 103006. https://doi.org/10.1016/j.mex.2024.103006
-- Funk, R., Völker, L. & Deumlich, D. (2023): *Landscape structure model based estimation of the wind erosion risk in Brandenburg, Germany.* Aeolian Research, 62: 100878.
+- Funk, R., Völker, L. & Deumlich, D. (2023): *Landscape structure model based estimation of the wind erosion risk in Brandenburg, Germany.* Aeolian Research, 62: 100878. https://doi.org/10.1016/j.aeolia.2023.100878
 
 DIN reference:
 - DIN 19706:2013-02, Bodenbeschaffenheit – Ermittlung der Erosionsgefährdung von Böden durch Wind.
 
 QGIS Plugin development: 
 
-- Schultz, J. (2026). *QWERA Toolbox: Open-source QGIS tools for Wind Erosion Risk Assessment (WERA)* (Version 0.2.0).  
+- Schultz, J. (2026). *QWERA Toolbox: Open-source QGIS tools for Wind Erosion Risk Assessment (WERA)* (Version x.x.x).  
 GitHub repository: https://github.com/JohnnyBasar/QWERA
 
 ---
