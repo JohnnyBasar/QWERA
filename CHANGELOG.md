@@ -10,10 +10,13 @@ The versioning follows a simple semantic scheme:
 ## ## [0.2.2] - 2026-01-19
 
 ### Fixes
-- Fixed handling of landscape-element pixels (forced class 5)
-- Improved raster-specific classification logic
-- Bug fixes and robustness improvements.
-- Fixed issue with native/qgis provider.
+- Fixed incorrect handling of landscape-element pixels; affected cells are now consistently assigned to protection class 5.
+- Corrected raster-specific classification logic and edge-case behavior.
+- Minor internal bug fixes and robustness improvements.
+
+### Changes
+- Refined shadow and classification workflows without altering user-facing parameters.
+- Improved internal consistency of raster processing steps.
 
 ---
 
