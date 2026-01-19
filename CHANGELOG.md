@@ -7,6 +7,16 @@ The versioning follows a simple semantic scheme:
 
 ---
 
+## ## [0.2.2] - 2026-01-19
+
+### Fixes
+- Fixed handling of landscape-element pixels (forced class 5)
+- Improved raster-specific classification logic
+- Bug fixes and robustness improvements.
+- Fixed issue with native/qgis provider.
+
+---
+
 ## [0.2.1] – 2025-01-10
 
 ### Fixes

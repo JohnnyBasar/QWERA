@@ -13,6 +13,7 @@ from qgis.core import (
     QgsProcessingParameterRasterDestination,
     QgsProcessingException,
     QgsProcessingParameterDefinition,
+    QgsRasterLayer
 )
 from qgis import processing
 import os
@@ -152,39 +153,54 @@ class TOOLBOX_1(QgsProcessingAlgorithm):
                 "DATA_TYPE": 5,
                 "OUTPUT": "TEMPORARY_OUTPUT",
             }
-            dom = processing.run(
-                "gdal:warpreproject", warp_params, context=context, feedback=feedback, is_child_algorithm=True
+            dom_trans = processing.run(
+                "gdal:warpreproject", 
+                warp_params, 
+                context=context, 
+                feedback=feedback, 
+                is_child_algorithm=True
             )["OUTPUT"]
+            dom = QgsRasterLayer(dom_trans, "dom")
+            if not dom.isValid():
+                raise QgsProcessingException("dom raster is invalid")
         else:
             feedback.pushInfo("CRS the same")
-            dom = dom.source()
-
+            #dom = dom.source()
 
         # 1) Differenz berechnen (DOM - DGM)
+
+        expr = f'"{dom.name()}@1" - "{dgm.name()}@1"'
+
         diff = processing.run(
-            "gdal:rastercalculator",
-            {
-                #"INPUT_A": dom_on_dgm,   # diesen Teil wieder aktivieren wenn die warp-Funktion aktiviert ist  
-                "INPUT_A": dom,  # den Teil auskommentieren wenn die Warp-Funktion aktiviert ist
-                "BAND_A": 1,
-                "INPUT_B": dgm.source(),
-                "BAND_B": 1,
-                "INPUT_C": None, "BAND_C": -1,
-                "INPUT_D": None, "BAND_D": -1,
-                "INPUT_E": None, "BAND_E": -1,
-                "INPUT_F": None, "BAND_F": -1,
-                "FORMULA": "A-B",
-                "NO_DATA": None,
-                "RTYPE": 5,       # Float32
-                "EXTRA": "",
-                "OPTIONS": "",
-                "OUTPUT": "TEMPORARY_OUTPUT",
-            },
-            context=context,
-            feedback=feedback,
-            is_child_algorithm=True
-        )
-        diff_raster = diff["OUTPUT"]
+                "native:rastercalc",
+                {
+                    "LAYERS": [dom, dgm],
+                    "EXPRESSION": expr,
+                    "EXTENT": dgm.extent(),
+                    "CRS": dgm.crs(),
+                    "OUTPUT": QgsProcessing.TEMPORARY_OUTPUT
+                },
+                context=context, feedback=feedback, is_child_algorithm=True
+            )["OUTPUT"]
+        
+        diff_layer = QgsRasterLayer(diff, "diff")
+        if not diff_layer.isValid():
+            raise QgsProcessingException("diff raster is invalid")
+
+        ## setting all values below zero to zero
+        expr_vdif = 'if("diff@1" < 0, 0, "diff@1")'
+        diff_raster = processing.run(
+                "native:rastercalc",
+                {
+                    "LAYERS": diff_layer,
+                    "EXPRESSION": expr_vdif,
+                    "EXTENT": diff_layer.extent(),
+                    "CRS": diff_layer.crs(),
+                    "OUTPUT": QgsProcessing.TEMPORARY_OUTPUT
+                },
+                context=context, feedback=feedback, is_child_algorithm=True
+            )["OUTPUT"]
+
 
         # --- 2) OPTIONAL: Feldblöcke auf 0 brennen ---
         if feldblock is not None:

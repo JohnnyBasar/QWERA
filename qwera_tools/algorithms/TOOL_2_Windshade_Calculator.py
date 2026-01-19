@@ -486,7 +486,17 @@ class TOOLBOX_2_HILLSHADES(QgsProcessingAlgorithm):
         if fat_shadow:
             shadow[:, :] = _binary_dilate(shadow, kernel_size=fat_kernel)
 
+        nodata = -9999.0
+        mask_nd = (Z == nodata)
+        mask_le = (~mask_nd) & (Z > 0.0)  # Höhenwerte: LE > 0
+
         OUTv = np.where(shadow, float(const_val), 0.0).astype(np.float32)
+        # Enforce LE only for the class-5 raster
+        if const_val is not None and abs(float(const_val) - 5.0) < 1e-6:
+            OUTv[mask_le] = 5.0
+
+        #OUTv[mask_nd] = nodata
+
         OUTv[mask_nd] = nodata
 
         drv = gdal.GetDriverByName("GTiff")

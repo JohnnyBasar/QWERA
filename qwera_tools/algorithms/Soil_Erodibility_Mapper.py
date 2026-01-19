@@ -3,7 +3,8 @@
 Soil Erodibility Mapper
 
 """
-
+from PyQt5.QtCore import QMetaType
+import processing
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.core import (
@@ -23,12 +24,15 @@ from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsRasterLayer,
     QgsVectorLayer,
-    QgsProcessingParameterFile
+    QgsProcessingParameterFile,
+    QgsApplication,
+    QgsProcessing
 )
 from qgis import processing
 from qgis.PyQt.QtCore import QVariant
 from qgis.core import QgsVectorLayer, QgsField, edit
 import os
+from .geom_validity import check_and_fix_validity
 
 def classify(v, classifier):
     # Classification helper used when no CSV lookup is provided.
@@ -151,6 +155,7 @@ class tool_0_3_soil_erodibility(QgsProcessingAlgorithm):
 
             <h2>Notes</h2>
             <dt><ul>
+            <li>On some systems the OpenCL raster calculator backend may fail. If this occurs, disable OpenCL in QGIS rendering settings.</li>
             <li>Requires <i>gdal</i>, <i>qgis</i>, and <i>native</i> processing providers to be active.</li>
             <li>Lookup CSV must contain at least <code>soil_code</code> and <code>class</code> columns.</li>
             <li>All outputs share the DEM’s CRS and resolution.</li>
@@ -215,6 +220,19 @@ class tool_0_3_soil_erodibility(QgsProcessingAlgorithm):
                          feedback: QgsProcessingFeedback):
 
         # Helper functions
+        
+        # def _is_opencl_error(err: Exception) -> bool:
+        #     msg = str(err).lower()
+        #     return any(k in msg for k in [
+        #         "opencl",
+        #         "kernel",
+        #         "compiler",
+        #         "clbuild",
+        #         "pointer cannot be cast",
+        #         "raster calculator failed"
+        #     ])
+
+        
         def ensure_crs(vl, target_crs):
             """Reproject if needed, otherwise return the layer unchanged."""
             if vl.crs() != target_crs:
@@ -255,69 +273,7 @@ class tool_0_3_soil_erodibility(QgsProcessingAlgorithm):
                 raise QgsProcessingException(f"Rasterization output '{name}' is invalid.")
             return rl
 
-
-        def check_and_fix_validity(vlayer, context, feedback, name):
-            # 1) Validate geometries
-            res = processing.run(
-                "native:checkvalidity",
-                {
-                    "INPUT_LAYER": vlayer,
-                    # "METHOD": 0,  # optional: choose validation engine, default is fine
-                    "VALID_OUTPUT": QgsProcessing.TEMPORARY_OUTPUT,
-                    "INVALID_OUTPUT": QgsProcessing.TEMPORARY_OUTPUT,
-                    "ERROR_OUTPUT": QgsProcessing.TEMPORARY_OUTPUT,
-                },
-                context=context, feedback=feedback, is_child_algorithm=True
-            )
-
-            # valid_lyr = res["VALID_OUTPUT"]  # valid features only
-            invalid_lyr = res["INVALID_OUTPUT"]  # invalid features only
-            error_pts = res["ERROR_OUTPUT"]      # error points (often includes a 'message' field)
-
-            # 2) Count invalid features
-            # invalid_count = invalid_lyr.featureCount() if invalid_lyr else 0
-            invalid_count = res["INVALID_COUNT"] if invalid_lyr else 0
-            feedback.pushInfo(f"[{name}] invalid features: {invalid_count}")
-
-            # 3) Optional: summarize error types (Top messages)
-            if invalid_count:
-                try:
-                    stats = processing.run(
-                        "qgis:basicstatisticsforfields",
-                        {"INPUT_LAYER": error_pts, "FIELD_NAME": "message"},
-                        context=context, feedback=feedback, is_child_algorithm=True
-                    )["STATISTICS"]
-                    feedback.pushInfo(f"[{name}] error summary: {stats.get('UNIQUE_VALUES', 'n/a')} types")
-                except Exception:
-                    pass  # if the error field name differs, skip quietly
-
-            # 4) Repair only if necessary
-            if invalid_count > 0:
-                feedback.pushInfo(f"[{name}] fixing geometries (fixgeometries)…")
-                fixed = processing.run(
-                    "native:fixgeometries",
-                    {"INPUT": vlayer, "OUTPUT": QgsProcessing.TEMPORARY_OUTPUT},
-                    context=context, feedback=feedback, is_child_algorithm=True
-                )["OUTPUT"]
-
-                # Optional: post-check (should be zero)
-                # res2 = processing.run(
-                #     "native:checkvalidity",
-                #     {
-                #         "INPUT_LAYER": fixed,
-                #         "VALID_OUTPUT": QgsProcessing.TEMPORARY_OUTPUT,
-                #         "INVALID_OUTPUT": QgsProcessing.TEMPORARY_OUTPUT,
-                #         "ERROR_OUTPUT": QgsProcessing.TEMPORARY_OUTPUT,
-                #     },
-                #     context=context, feedback=feedback, is_child_algorithm=True
-                # )
-                # invalid_after = res2["INVALID_COUNT"]
-                # if invalid_after > 0:
-                #     feedback.reportError(f"[{name}] Warning: {invalid_after} invalid features remain after fixgeometries.")
-                return fixed, invalid_lyr, error_pts  # repaired layer + diagnostics
-            # 5) If all valid, return original
-            return vlayer, invalid_lyr, error_pts
-
+        
         #--------------------------------------------------#
         # Read data
         # Reference raster
@@ -439,7 +395,7 @@ class tool_0_3_soil_erodibility(QgsProcessingAlgorithm):
         else:
             feedback.pushInfo("No CSV provided – using internal classification.")
             if vSoil_clip.fields().indexFromName("Erod") == -1:
-                vSoil_clip.dataProvider().addAttributes([QgsField("Erod", QVariant.Int, len=1)])
+                vSoil_clip.dataProvider().addAttributes([QgsField("Erod", QMetaType.Type.Int, len = 1)])
                 vSoil_clip.updateFields()
 
             dst_idx = vSoil_clip.fields().indexFromName("Erod")
@@ -482,7 +438,10 @@ class tool_0_3_soil_erodibility(QgsProcessingAlgorithm):
         feedback.pushInfo("Step 4: Calculating final erodibility raster.")
 
         soil = f"\"{rSoil.name()}@1\""  # dynamic, quoted layer name
+        #feedback.pushInfo(f"Soil Name: {rSoil.name()}")
+        
         soml = f"\"{rSOM.name()}@1\""   # dynamic, quoted layer name
+        #feedback.pushInfo(f"Soil Name: \"{rSOM.name()}@1\"")
 
         expr = f"""
             if({soml} = 4, 5,
@@ -520,8 +479,8 @@ class tool_0_3_soil_erodibility(QgsProcessingAlgorithm):
                 },
                 context=context, feedback=feedback, is_child_algorithm=True
             )["OUTPUT"]
-        except Exception as e:
-            feedback.reportError(f"Native raster calculator failed ({e}); switching to QGIS raster calculator.")
+        except Exception as e_native:
+            feedback.reportError(f"Native raster calculator failed ({e_native}); switching to QGIS raster calculator. This might occour due to the OpenCL backend.\n Try disabling OpenCl.")
             out = processing.run(
                 "qgis:rastercalculator",
                 {
@@ -535,6 +494,21 @@ class tool_0_3_soil_erodibility(QgsProcessingAlgorithm):
                 },
                 context=context, feedback=feedback, is_child_algorithm=True
             )["OUTPUT"]
+        # except Exception as e_qgis:
+        #     # gezielte OpenCL-Hilfestellung
+        #     if _is_opencl_error(e_qgis):
+        #         raise QgsProcessingException(
+        #             "Raster calculation failed due to the OpenCL backend.\n\n"
+        #             "Please disable OpenCL in QGIS:\n"
+        #             "Settings → Options → Rendering → OpenCL\n\n"
+        #             "Then rerun the algorithm."
+        #         )
+        #     else:
+        #         raise QgsProcessingException(
+        #             f"Raster calculation failed:\n{e_qgis}"
+        #         )
+
+
 
         if self.parameterAsBoolean(parameters, self.LOAD_OUTPUTS, context):
             context.addLayerToLoadOnCompletion(

@@ -14,6 +14,7 @@ from qgis.PyQt.QtCore import QVariant
 from qgis import processing
 from qgis.PyQt.QtGui import QIcon
 import os
+from .geom_validity import check_and_fix_validity
 
 class TOOLBOX_5_FeldbloeckeRiskShare(QgsProcessingAlgorithm):
     INPUT_RASTER = "INPUT_RASTER"
@@ -130,69 +131,7 @@ class TOOLBOX_5_FeldbloeckeRiskShare(QgsProcessingAlgorithm):
 
     def processAlgorithm(self, params, context: QgsProcessingContext, feedback: QgsProcessingFeedback):
         
-        #Helpersfunctions
-        def check_and_fix_validity(vlayer, context, feedback, name):
-            # 1) Validate geometries
-            res = processing.run(
-                "native:checkvalidity",
-                {
-                    "INPUT_LAYER": vlayer,
-                    # "METHOD": 0,  # optional: choose validation engine, default is fine
-                    "VALID_OUTPUT": QgsProcessing.TEMPORARY_OUTPUT,
-                    "INVALID_OUTPUT": QgsProcessing.TEMPORARY_OUTPUT,
-                    "ERROR_OUTPUT": QgsProcessing.TEMPORARY_OUTPUT,
-                },
-                context=context, feedback=feedback, is_child_algorithm=True
-            )
-
-            # valid_lyr = res["VALID_OUTPUT"]  # valid features only
-            invalid_lyr = res["INVALID_OUTPUT"]  # invalid features only
-            error_pts = res["ERROR_OUTPUT"]      # error points (often includes a 'message' field)
-
-            # 2) Count invalid features
-            # invalid_count = invalid_lyr.featureCount() if invalid_lyr else 0
-            invalid_count = res["INVALID_COUNT"] if invalid_lyr else 0
-            feedback.pushInfo(f"[{name}] invalid features: {invalid_count}")
-
-            # 3) Optional: summarize error types (Top messages)
-            if invalid_count:
-                try:
-                    stats = processing.run(
-                        "qgis:basicstatisticsforfields",
-                        {"INPUT_LAYER": error_pts, "FIELD_NAME": "message"},
-                        context=context, feedback=feedback, is_child_algorithm=True
-                    )["STATISTICS"]
-                    feedback.pushInfo(f"[{name}] error summary: {stats.get('UNIQUE_VALUES', 'n/a')} types")
-                except Exception:
-                    pass  # if the error field name differs, skip quietly
-
-            # 4) Repair only if necessary
-            if invalid_count > 0:
-                feedback.pushInfo(f"[{name}] fixing geometries (fixgeometries)…")
-                fixed = processing.run(
-                    "native:fixgeometries",
-                    {"INPUT": vlayer, "OUTPUT": QgsProcessing.TEMPORARY_OUTPUT},
-                    context=context, feedback=feedback, is_child_algorithm=True
-                )["OUTPUT"]
-
-                # Optional: post-check (should be zero)
-                # res2 = processing.run(
-                #     "native:checkvalidity",
-                #     {
-                #         "INPUT_LAYER": fixed,
-                #         "VALID_OUTPUT": QgsProcessing.TEMPORARY_OUTPUT,
-                #         "INVALID_OUTPUT": QgsProcessing.TEMPORARY_OUTPUT,
-                #         "ERROR_OUTPUT": QgsProcessing.TEMPORARY_OUTPUT,
-                #     },
-                #     context=context, feedback=feedback, is_child_algorithm=True
-                # )
-                # invalid_after = res2["INVALID_COUNT"]
-                # if invalid_after > 0:
-                #     feedback.reportError(f"[{name}] Warning: {invalid_after} invalid features remain after fixgeometries.")
-                return fixed, invalid_lyr, error_pts  # repaired layer + diagnostics
-            # 5) If all valid, return original
-            return vlayer, invalid_lyr, error_pts
-        
+                
         risk_rlayer: QgsRasterLayer = self.parameterAsRasterLayer(params, self.INPUT_RASTER, context)
         #poly_vlayer: QgsVectorLayer = self.parameterAsVectorLayer(params, self.INPUT_BLOCKS, context)
         poly_vlayer = self.parameterAsVectorLayer(params, self.INPUT_BLOCKS, context)
