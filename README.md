@@ -1,7 +1,8 @@
 # QWERA Toolbox (QGIS)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1234560.svg)](https://doi.org/10.5281/zenodo.18337035)
-![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18337035.svg)](https://doi.org/10.5281/zenodo.18337035)
+[![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
+
 
 Open-source QGIS toolbox for Wind Erosion Risk Assessment (WERA)
 
