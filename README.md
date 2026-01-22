@@ -1,5 +1,10 @@
 # QWERA Toolbox (QGIS)
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1234560.svg)](https://doi.org/10.5281/zenodo.18337035)
+![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)
+
+Open-source QGIS toolbox for Wind Erosion Risk Assessment (WERA)
+
 **QWERA (QGIS Wind Erosion Risk Assessment)** is an open-source QGIS Processing toolbox
 for spatial wind erosion risk assessment with explicit consideration of landscape
 structures.
@@ -106,8 +111,7 @@ DIN reference:
 
 QGIS Plugin development: 
 
-- Schultz, J. (2026). *QWERA Toolbox: Open-source QGIS tools for Wind Erosion Risk Assessment (WERA)* (Version x.x.x).  
-GitHub repository: https://github.com/JohnnyBasar/QWERA
+- Schultz, J. (2026). QWERA Toolbox: Open-source QGIS tools for Wind Erosion Risk Assessment (v0.3.0). Zenodo. https://doi.org/10.5281/zenodo.18337036
 
 ---
 

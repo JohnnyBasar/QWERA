@@ -4,10 +4,11 @@ title: "QWERA Toolbox: Open-source QGIS tools for Wind Erosion Risk Assessment"
 authors:
   - family-names: Schultz
     given-names: Jonathan
-version: 0.2.0
-date-released: 2026-01-01
+version: 0.3.0
+date-released: 2026-01-22
 license: GPL-3.0-or-later
-repository-code: https://github.com/<dein-user>/<dein-repo>
+doi: 10.5281/zenodo.18337035
+repository-code: https://github.com/JohnnyBasar/QWERA
 keywords:
   - Wind erosion
   - GIS
