@@ -53,6 +53,7 @@ class TOOLBOX_2_HILLSHADES(QgsProcessingAlgorithm):
     SUFFIX = "SUFFIX"
     FAT_SHADOW = "FAT_SHADOW"
     FAT_KERNEL = "FAT_KERNEL"
+    USE_SAGA = "USE_SAGA"
     
     # Defaults for octant scan & numerics
     _EDGE_BIAS_PX = -0.5
@@ -79,6 +80,7 @@ class TOOLBOX_2_HILLSHADES(QgsProcessingAlgorithm):
             This tool generates <b>shadow masks</b> from the Landscape elements raster (<i>Tool 1: Landscape Elements Calculator</i>) and a  parameter table with <b>azimuth</b>, <b>altitude</b>, and a per-run <b>constant</b> (<i>Wind statistics & shadow parameters</i> Tool). 
             Each row yields one GeoTIFF via an <b>octant-based shadow-scan</b>; sunlit cells are 0.0 and shadowed cells take the given constant (Float32). This refers directly to the approach presented by <b>Funk &amp; V&ouml;lker (2024)</b>. For each given wind direction 5 grids for the 5 wind protection zones are generated. (+ 1 upwind zone)
             The number of octants is <b>inferred automatically</b> from the azimuth list when it is equally spaced. Otherwise, a robust default is used.
+            If SAGA Tools are installed, SAGA's analytical hillshading function is used. If this is not found, a internal fallback algorithm is used. The results may differ.
             </p>
 
             <h2>Standards & References</h2>
@@ -94,7 +96,7 @@ class TOOLBOX_2_HILLSHADES(QgsProcessingAlgorithm):
             <li><b>Azimut/Altitude/Constant</b>: Field names containing the specified information.</li>
             <li><b>Prefix/Suffix</b>: optional Suffix or Prefix for output data.</li>
             <li><b>Output writing</b>: shadows → <code>constant</code>, sun → <code>0.0</code>; save as Float32 GeoTIFF (compressed). Optional auto-add to QGIS.</li>
-            <li><b>Fat shadows</b> (optional): closes small gaps in the shadow mask and adds a 3x3 or 2x2 dilation, giving slightly thicker, more conservative shadow regions.</li>
+            <li><b>Fat shadows</b> (optional): closes small gaps in the shadow mask and adds a 3x3 or 2x2 dilation, giving slightly thicker, more conservative shadow regions. Only affects the fallback scan, not SAGA</li>
             </ul></dt>
             
             <h2>Output</h2>
@@ -126,19 +128,34 @@ class TOOLBOX_2_HILLSHADES(QgsProcessingAlgorithm):
         self.addParameter(QgsProcessingParameterString(self.PREFIX,    "Prefix", defaultValue="", optional=True))
         self.addParameter(QgsProcessingParameterString(self.SUFFIX,    "Suffix", defaultValue="", optional=True))
 
+
+        # Prefer SAGA Analytical Hillshading (if available)
+        self.addParameter(QgsProcessingParameterBoolean(
+            self.USE_SAGA,
+            "Prefer SAGA analytical hillshading (METHOD=3 'Shadows Only') with fallback",
+            defaultValue=True
+        ))
+
         # Fat shadows: on/off
         self.addParameter(QgsProcessingParameterBoolean(
             self.FAT_SHADOW,
-            "Fat shadows (3x3 closing + extra dilation)",
+            "Fat shadows on (only affects the fallback scan, not SAGA)",
             defaultValue=False
         ))
 
         # Kernel size for fat shadows
         self.addParameter(QgsProcessingParameterEnum(
             self.FAT_KERNEL,
-            "Fat shadow kernel",
+            "Size of the fat shadow (not SAGA)",
             options=["3x3", "2x2"],
             defaultValue=0
+        ))
+
+        # Prefer SAGA Analytical Hillshading (if available)
+        self.addParameter(QgsProcessingParameterBoolean(
+            self.USE_SAGA,
+            "Prefer SAGA analytical hillshading (METHOD=3 'Shadows Only') with fallback",
+            defaultValue=True
         ))
 
         self.addParameter(QgsProcessingParameterFolderDestination(self.OUTPUT_DIR, "Output folder"))
@@ -301,6 +318,137 @@ class TOOLBOX_2_HILLSHADES(QgsProcessingAlgorithm):
             "ny": ny,
             "nx": nx,
         }
+
+    def _write_shadow_mask(self, dem_info, shadow_bool, out_path, const_val=1.0):
+        """Writes a Float32 GeoTIFF: shadow -> constant, sun -> 0, DEM no-data -> DEM nodata.
+
+        Also enforces the 'LE pixels are always class 5' rule for const==5.
+        """
+        Z       = dem_info["Z"]
+        mask_nd = dem_info["mask_nd"]
+        nodata  = float(dem_info["nodata"])
+        gt      = dem_info["gt"]
+        proj    = dem_info["proj"]
+        ny      = dem_info["ny"]
+        nx      = dem_info["nx"]
+
+        shadow = np.array(shadow_bool, dtype=bool, copy=False)
+        if shadow.shape != (ny, nx):
+            raise QgsProcessingException("Shadow mask dimensions do not match input raster.")
+
+        shadow[mask_nd] = False
+
+        # Heights raster convention: LE > 0
+        mask_le = (~mask_nd) & np.isfinite(Z) & (Z > 0.0)
+
+        c = float(const_val) if const_val is not None else 1.0
+        out = np.where(shadow, c, 0.0).astype(np.float32)
+
+        # Enforce LE only for the class-5 raster
+        if abs(c - 5.0) < 1e-6:
+            out[mask_le] = 5.0
+
+        out[mask_nd] = nodata
+
+        drv = gdal.GetDriverByName("GTiff")
+        ods = drv.Create(
+            str(out_path),
+            nx,
+            ny,
+            1,
+            gdal.GDT_Float32,
+            options=[
+                "TILED=YES",
+                "COMPRESS=DEFLATE",
+                "PREDICTOR=3",
+                "ZLEVEL=6",
+                "BIGTIFF=IF_SAFER",
+            ],
+        )
+        ods.SetGeoTransform(gt)
+        ods.SetProjection(proj)
+        b = ods.GetRasterBand(1)
+        b.WriteArray(out)
+        b.SetNoDataValue(nodata)
+        b.FlushCache()
+        ods.FlushCache()
+        ods = None
+
+    def _saga_shadow_mask(self, dem_layer, az, alt, context, feedback):
+        """Runs SAGA 'Analytical Hillshading' with METHOD=3 ('Shadows Only') and returns a boolean mask."""
+        res = processing.run(
+            "sagang:analyticalhillshading",
+            {
+                "ELEVATION": dem_layer,
+                "SHADE": QgsProcessing.TEMPORARY_OUTPUT,
+                "METHOD": 3,        # Shadows Only
+                "POSITION": 0,      # azimuth and height
+                "AZIMUTH": float(az),
+                "DECLINATION": float(alt),
+                "EXAGGERATION": 1.0,
+                "UNIT": 0,          # radians (irrelevant for METHOD=3, but required by interface)
+                "SHADOW": 1,        # 'fat' shadow tracing (more conservative)
+                "NDIRS": 8,         # used for Ambient Occlusion only (METHOD=4)
+                "RADIUS": 10.0,     # used for Ambient Occlusion only (METHOD=4)
+            },
+            context=context,
+            feedback=feedback,
+            is_child_algorithm=True,
+        )
+
+        shade_path = res.get("SHADE")
+        if not shade_path:
+            raise QgsProcessingException("SAGA output 'SHADE' not returned.")
+
+        ds = gdal.Open(str(shade_path), gdal.GA_ReadOnly)
+        if ds is None:
+            raise QgsProcessingException("SAGA shade raster could not be opened.")
+        band = ds.GetRasterBand(1)
+        arr = band.ReadAsArray()
+        ndv = band.GetNoDataValue()
+        band = None
+        ds = None
+
+        if arr is None:
+            raise QgsProcessingException("SAGA shade raster could not be read.")
+
+        arr = arr.astype(np.float32, copy=False)
+        nodata_mask = ~np.isfinite(arr)
+        if ndv is not None:
+            nodata_mask |= (arr == float(ndv))
+
+        # METHOD=3: sunlit cells are NoData, shadowed cells have a value (typically 90° / pi/2).
+        return ~nodata_mask
+
+    @staticmethod
+    def _close_and_optionally_dilate(mask_bool, extra_dilate=False, kernel_size=3):
+        """Applies a 3x3 binary closing, optionally followed by an extra dilation (3x3 or 2x2)."""
+
+        def _binary_dilate(m, k=3):
+            ny_, nx_ = m.shape
+            padded = np.pad(m, 1, mode="constant", constant_values=False)
+            if k == 2:
+                a = padded[0:ny_,     0:nx_]
+                b = padded[0:ny_,     1:nx_+1]
+                c = padded[1:ny_+1,   0:nx_]
+                d = padded[1:ny_+1,   1:nx_+1]
+                return a | b | c | d
+            neigh = [
+                padded[0:-2, 0:-2], padded[0:-2, 1:-1], padded[0:-2, 2:],
+                padded[1:-1, 0:-2], padded[1:-1, 1:-1], padded[1:-1, 2:],
+                padded[2:,   0:-2], padded[2:,   1:-1], padded[2:,   2:],
+            ]
+            return np.logical_or.reduce(neigh)
+
+        m = np.array(mask_bool, dtype=bool, copy=False)
+        d1 = _binary_dilate(m, k=3)
+        e1 = ~_binary_dilate(~d1, k=3)
+        m = e1
+
+        if extra_dilate:
+            m = _binary_dilate(m, k=kernel_size)
+
+        return m
 
     def _compute_shadow_octant(self, dem_info, az, alt, out_path, octants, maxd, edge_bias_px, feedback, const_val=1.0, fat_shadow=False, fat_kernel=3):
         """
@@ -486,42 +634,8 @@ class TOOLBOX_2_HILLSHADES(QgsProcessingAlgorithm):
         if fat_shadow:
             shadow[:, :] = _binary_dilate(shadow, kernel_size=fat_kernel)
 
-        nodata = -9999.0
-        mask_nd = (Z == nodata)
-        mask_le = (~mask_nd) & (Z > 0.0)  # Höhenwerte: LE > 0
-
-        OUTv = np.where(shadow, float(const_val), 0.0).astype(np.float32)
-        # Enforce LE only for the class-5 raster
-        if const_val is not None and abs(float(const_val) - 5.0) < 1e-6:
-            OUTv[mask_le] = 5.0
-
-        #OUTv[mask_nd] = nodata
-
-        OUTv[mask_nd] = nodata
-
-        drv = gdal.GetDriverByName("GTiff")
-        ods = drv.Create(
-            str(out_path),
-            nx,
-            ny,
-            1,
-            gdal.GDT_Float32,
-            options=[
-                "TILED=YES",
-                "COMPRESS=DEFLATE",
-                "PREDICTOR=3",
-                "ZLEVEL=6",
-                "BIGTIFF=IF_SAFER",
-            ],
-        )
-        ods.SetGeoTransform(gt)
-        ods.SetProjection(proj)
-        b = ods.GetRasterBand(1)
-        b.WriteArray(OUTv)
-        b.SetNoDataValue(float(nodata))
-        b.FlushCache()
-        ods.FlushCache()
-        ods = None
+        # Write output using DEM no-data mask and class-5 enforcement.
+        self._write_shadow_mask(dem_info, shadow, out_path, const_val=const_val)
 
     def processAlgorithm(self, parameters, context, feedback):
         self._EPS_M = None
@@ -553,6 +667,7 @@ class TOOLBOX_2_HILLSHADES(QgsProcessingAlgorithm):
         fat_shadow = self.parameterAsBoolean(parameters, self.FAT_SHADOW, context)
         fat_kernel_idx = self.parameterAsEnum(parameters, self.FAT_KERNEL, context)
         fat_kernel = 3 if fat_kernel_idx == 0 else 2
+        prefer_saga = self.parameterAsBoolean(parameters, self.USE_SAGA, context)
         
         dem_info = self._prepare_dem(dem_layer, feedback)
 
@@ -568,6 +683,9 @@ class TOOLBOX_2_HILLSHADES(QgsProcessingAlgorithm):
         created = []
         total_rows = len(rows)
         feedback.pushInfo("Rows: " + str(total_rows))
+
+        # If SAGA is missing or fails systematically, disable after the first hard failure
+        saga_enabled = bool(prefer_saga)
 
         for idx, row in enumerate(rows, start=1):
             if feedback.isCanceled():
@@ -589,19 +707,48 @@ class TOOLBOX_2_HILLSHADES(QgsProcessingAlgorithm):
             feedback.pushInfo(f"[{idx}/{total_rows}] {name}: AZ={az}, ALT={alt}, CONST={cval} -> {fn}")
 
             try:
-                self._compute_shadow_octant(
-                    dem_info,
-                    float(az),
-                    float(alt),
-                    out_path,
-                    octants=self._OCTANTS,
-                    maxd=self._MAX_DIST,
-                    edge_bias_px=self._EDGE_BIAS_PX,
-                    feedback=feedback,
-                    const_val=float(cval),
-                    fat_shadow=fat_shadow,
-                    fat_kernel=fat_kernel,
-                )
+                if saga_enabled:
+                    try:
+                        shadow_mask = self._saga_shadow_mask(dem_layer, float(az), float(alt), context, feedback)
+                        # IMPORTANT:
+                        # The plugin's own "Fat shadows" post-processing (closing + dilation)
+                        # shall ONLY be applied to the internal fallback shadow-scan.
+                        # When SAGA succeeds, we keep the SAGA result as-is.
+                        self._write_shadow_mask(dem_info, shadow_mask, out_path, const_val=float(cval))
+                    except Exception as saga_err:
+                        feedback.reportError(f"SAGA analytical hillshading failed for '{name}' (AZ={az}, ALT={alt}). Falling back to internal shadow scan. Details: {saga_err}")
+                        # If the algorithm is not available (or SAGA provider is missing), stop trying for subsequent rows.
+                        msg = str(saga_err).lower()
+                        if "not found" in msg or "algorithm" in msg and "not" in msg and "found" in msg or "sagang" in msg:
+                            saga_enabled = False
+
+                        self._compute_shadow_octant(
+                            dem_info,
+                            float(az),
+                            float(alt),
+                            out_path,
+                            octants=self._OCTANTS,
+                            maxd=self._MAX_DIST,
+                            edge_bias_px=self._EDGE_BIAS_PX,
+                            feedback=feedback,
+                            const_val=float(cval),
+                            fat_shadow=fat_shadow,
+                            fat_kernel=fat_kernel,
+                        )
+                else:
+                    self._compute_shadow_octant(
+                        dem_info,
+                        float(az),
+                        float(alt),
+                        out_path,
+                        octants=self._OCTANTS,
+                        maxd=self._MAX_DIST,
+                        edge_bias_px=self._EDGE_BIAS_PX,
+                        feedback=feedback,
+                        const_val=float(cval),
+                        fat_shadow=fat_shadow,
+                        fat_kernel=fat_kernel,
+                    )
                 created.append(out_path)
             except Exception as e:
                 feedback.reportError(f"Error '{name}': {e}")

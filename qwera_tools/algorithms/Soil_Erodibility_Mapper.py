@@ -395,7 +395,11 @@ class tool_0_3_soil_erodibility(QgsProcessingAlgorithm):
         else:
             feedback.pushInfo("No CSV provided – using internal classification.")
             if vSoil_clip.fields().indexFromName("Erod") == -1:
-                vSoil_clip.dataProvider().addAttributes([QgsField("Erod", QMetaType.Type.Int, len = 1)])
+                try:
+                    vSoil_clip.dataProvider().addAttributes([QgsField("Erod", QMetaType.Type.Int, len = 1)])
+                except Exception as e:
+                    vSoil_clip.dataProvider().addAttributes([QgsField("Erod", QVariant.Int, len=1)])
+
                 vSoil_clip.updateFields()
 
             dst_idx = vSoil_clip.fields().indexFromName("Erod")

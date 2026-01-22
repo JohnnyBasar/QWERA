@@ -5,6 +5,20 @@ All notable changes to the QWERA Toolbox are documented in this file.
 The versioning follows a simple semantic scheme:
 - MAJOR.MINOR.PATCH
 
+
+---
+
+## ## [0.3.0] - 2026-01-22
+
+### Changes
+- SAGA Analytical Hillshading is now used as the default method for shadow calculation.
+- Added an automatic fallback to the internal ray-tracing algorithm if SAGA is unavailable or fails.
+- Improved robustness of the shadow calculation workflow.
+
+### Fixes
+- Fixed compatibility issues affecting older QGIS versions.
+- Improved stability of shadow computation in heterogeneous processing environments.
+
 ---
 
 ## ## [0.2.2] - 2026-01-19
