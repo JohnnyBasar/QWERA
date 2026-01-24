@@ -35,6 +35,7 @@ class WIND_STATS(QgsProcessingAlgorithm):
     PARAM_THRESHOLD = "THRESHOLD"
     PARAM_POROSITY = "POROSITY"
     PARAM_DROP_EMPTY = "DROP_EMPTY_DIRECTIONS"
+    PARAM_MAX_SHELTER_SPEED = "MAX_SHELTER_SPEED"
     PARAM_OUTPUT = "OUTPUT"
 
     def icon(self):
@@ -157,7 +158,21 @@ class WIND_STATS(QgsProcessingAlgorithm):
             )
         )
 
-        # Output CSV (like WERA table)
+        
+        # Maximum wind speed class (upper bound, m/s) to consider for L_dir.
+        # To reproduce the WERA reference spreadsheets, keep the default (14), i.e. 4–14 m/s bins.
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.PARAM_MAX_SHELTER_SPEED,
+                self.tr("Max wind speed class for shelter length L_dir (upper bound, m/s)"),
+                type=QgsProcessingParameterNumber.Integer,
+                defaultValue=14,
+                minValue=4,
+                maxValue=60,
+            )
+        )
+
+# Output CSV (like WERA table)
         self.addParameter(
             QgsProcessingParameterFileDestination(
                 self.PARAM_OUTPUT,
@@ -236,6 +251,7 @@ class WIND_STATS(QgsProcessingAlgorithm):
         ut = self.parameterAsDouble(parameters, self.PARAM_THRESHOLD, context)
         porosity = self.parameterAsDouble(parameters, self.PARAM_POROSITY, context)
         drop_empty = self.parameterAsBool(parameters, self.PARAM_DROP_EMPTY, context)
+        max_shelter_speed = self.parameterAsInt(parameters, self.PARAM_MAX_SHELTER_SPEED, context)
         output_csv = self.parameterAsFileOutput(parameters, self.PARAM_OUTPUT, context)
 
         if not os.path.isfile(input_csv):
@@ -314,10 +330,15 @@ class WIND_STATS(QgsProcessingAlgorithm):
             if math.isinf(v_val) or math.isnan(v_val):
                 continue
 
-            speed_idx = int(round(v_val))
+            speed_idx_round = round(v_val)
+            if abs(v_val - speed_idx_round) > 1e-6:
+                raise QgsProcessingException(
+                    self.tr("Non-integer vclass value encountered: {}. vclass must be integer bins (0,1,2,...)").format(v_val)
+                )
+            speed_idx = int(speed_idx_round)
             speed_indices_set.add(speed_idx)
 
-
+            
         if not speed_indices_set:
             raise QgsProcessingException(self.tr("No numeric vclass values found."))
 
@@ -472,20 +493,37 @@ class WIND_STATS(QgsProcessingAlgorithm):
             else:
                 P_dir = T_dir / T_max if T_max > 0.0 else 0.0
 
-                L_dir_num = 0.0
-                for speed in range(max_speed_index + 1):
-                    T_val = T_speeds[speed]
-                    if T_val <= 0.0:
-                        continue
-                    x_mid = xp_mid.get(speed, 0.0)
-                    if x_mid <= 0.0:
-                        continue
-                    L_dir_num += x_mid * T_val
-                L_dir = L_dir_num / T_dir if T_dir > 0.0 else 0.0
+                # Startklasse: erste Klasse strikt über u_t
+                start_speed = int(math.floor(ut)) + 1
+
+                # Endklasse: durch Parameter begrenzt (und durch Daten begrenzt)
+                end_speed = min(max_speed_index, int(max_shelter_speed))
+
+                if end_speed < start_speed:
+                    feedback.pushWarning(
+                                self.tr("Max shelter speed ({}) is below threshold-derived start speed ({}). L_dir will be 0.").format(
+                                    end_speed, start_speed
+                                )
+                            )
+                    # nichts zu integrieren -> L_dir bleibt 0
+                    L_dir = 0.0
+                else:
+                    L_dir_num = 0.0
+                    for speed in range(start_speed, end_speed + 1):
+                        T_val = T_speeds[speed]
+                        if T_val <= 0.0:
+                            continue
+                        x_mid = xp_mid.get(speed, 0.0)
+                        if x_mid <= 0.0:
+                            continue
+                        L_dir_num += x_mid * T_val
+
+                    # WERA-Logik: Normierung bleibt über Gesamttransport T_dir
+                    L_dir = L_dir_num / T_dir if T_dir > 0.0 else 0.0
+
 
             # altitudes for zones 1..5 and opposite
             altitudes = [0.0] * 6  # 0..5, index 5 == opposite zone
-
             if L_dir > 0.0 and P_dir > 0.0:
                 for zone in range(1, 6):
                     x_k = (L_dir / 5.0) * (6.0 - float(zone)) * P_dir
