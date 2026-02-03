@@ -23,6 +23,7 @@ from qgis.core import (
     QgsProcessingParameterFileDestination,
     QgsProcessingParameterBoolean,
     QgsProcessingException,
+    QgsProcessingParameterDefinition
 )
 
 
@@ -161,18 +162,31 @@ class WIND_STATS(QgsProcessingAlgorithm):
         
         # Maximum wind speed class (upper bound, m/s) to consider for L_dir.
         # To reproduce the WERA reference spreadsheets, keep the default (14), i.e. 4–14 m/s bins.
-        self.addParameter(
-            QgsProcessingParameterNumber(
-                self.PARAM_MAX_SHELTER_SPEED,
-                self.tr("Max wind speed class for shelter length L_dir (upper bound, m/s)"),
-                type=QgsProcessingParameterNumber.Integer,
-                defaultValue=14,
-                minValue=4,
-                maxValue=60,
-            )
-        )
+        # self.addParameter(
+        #     QgsProcessingParameterNumber(
+        #         self.PARAM_MAX_SHELTER_SPEED,
+        #         self.tr("Max wind speed class for shelter length L_dir (upper bound, m/s)"),
+        #         type=QgsProcessingParameterNumber.Integer,
+        #         defaultValue=14,
+        #         minValue=4,
+        #         maxValue=60,
+        #     )
+        # )
 
-# Output CSV (like WERA table)
+        param = QgsProcessingParameterNumber(
+            self.PARAM_MAX_SHELTER_SPEED,
+            self.tr("Max wind speed class for shelter length L_dir (upper bound, m/s)"),
+            type=QgsProcessingParameterNumber.Integer,
+            defaultValue=14,
+            minValue=4,
+            maxValue=60,
+        )
+        param.setFlags(param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        self.addParameter(param)
+
+
+
+        # Output CSV (like WERA table)
         self.addParameter(
             QgsProcessingParameterFileDestination(
                 self.PARAM_OUTPUT,

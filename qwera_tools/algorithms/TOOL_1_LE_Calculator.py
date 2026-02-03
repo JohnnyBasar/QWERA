@@ -13,7 +13,12 @@ from qgis.core import (
     QgsProcessingParameterRasterDestination,
     QgsProcessingException,
     QgsProcessingParameterDefinition,
-    QgsRasterLayer
+    QgsRasterLayer,
+    QgsProcessingParameterBoolean,
+    QgsFeatureRequest,
+    QgsFields, 
+    QgsWkbTypes,
+    QgsVectorLayer
 )
 from qgis import processing
 import os
@@ -21,7 +26,8 @@ import os
 class TOOLBOX_1(QgsProcessingAlgorithm):
     INPUT_DEM = "INPUT_DEM"
     INPUT_DOM = "INPUT_DOM"
-    INPUT_VECTOR = "INPUT_VECTOR"       # optional
+    INPUT_VECTOR = "INPUT_VECTOR"       # optional^
+    USE_SELECTION = "use_selection"
     OUTPUT_RASTER = "OUTPUT_RASTER"
     
     def icon(self):
@@ -111,6 +117,12 @@ class TOOLBOX_1(QgsProcessingAlgorithm):
         p_vec.setFlags(p_vec.flags() | QgsProcessingParameterDefinition.FlagOptional)
         self.addParameter(p_vec)
 
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.USE_SELECTION, self.tr("Use only selected features"), defaultValue=False
+            )
+        )
+
         # Output: TEMPORARY_OUTPUT als Default sorgt für automatisches Laden
         self.addParameter(
             QgsProcessingParameterRasterDestination(
@@ -124,7 +136,30 @@ class TOOLBOX_1(QgsProcessingAlgorithm):
         # Eingaben
         dgm = self.parameterAsRasterLayer(parameters, self.INPUT_DEM, context)
         dom = self.parameterAsRasterLayer(parameters, self.INPUT_DOM, context)
-        feldblock = self.parameterAsVectorLayer(parameters, self.INPUT_VECTOR, context)  # kann None sein
+        #feldblock = self.parameterAsSource(parameters, self.INPUT_VECTOR, context)  # kann None sein
+        feldblock = self.parameterAsVectorLayer(parameters, self.INPUT_VECTOR, context)
+        use_sel = self.parameterAsBool(parameters, self.USE_SELECTION, context)
+
+        feldblock_sel = feldblock.getSelectedFeatures() if (use_sel and feldblock.selectedFeatureCount() > 0) else feldblock.getFeatures(QgsFeatureRequest())
+    
+
+        # Memory-Layer erzeugen
+        mem = QgsVectorLayer(
+            f"{QgsWkbTypes.displayString(feldblock.wkbType())}?crs={feldblock.crs().authid()}",
+            "feldblock_sel",
+            "memory"
+        )
+        prov = mem.dataProvider()
+        prov.addAttributes(feldblock.fields())
+        mem.updateFields()
+
+        # Features kopieren
+        prov.addFeatures(feldblock_sel)
+        mem.updateExtents()
+
+        feldblock = mem
+
+
 
         if dgm is None or dom is None:
             raise QgsProcessingException("Input rasters could not be read.")
