@@ -6,6 +6,15 @@ The versioning follows a simple semantic scheme:
 - MAJOR.MINOR.PATCH
 
 
+## ## [0.4.0] - 2026-02-06
+
+### Changes
+- Added a configurable parameter for the upper wind speed class limit in Tool 0.4.0, allowing better control over shelter length calculation.
+
+### Fixes
+- Corrected an error in the shadow calculation logic.
+- Results are now consistent with the WERA reference implementation.
+
 ---
 
 ## ## [0.3.0] - 2026-01-22

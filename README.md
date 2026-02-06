@@ -112,7 +112,7 @@ DIN reference:
 
 QGIS Plugin development: 
 
-- Schultz, J. (2026). QWERA Toolbox: Open-source QGIS tools for Wind Erosion Risk Assessment (v0.3.0). Zenodo. https://doi.org/10.5281/zenodo.18337036
+- Schultz, J. (2026). QWERA Toolbox: Open-source QGIS tools for Wind Erosion Risk Assessment (e.g. v0.3.0). Zenodo. https://doi.org/10.5281/zenodo.18337036
 
 ---
 
