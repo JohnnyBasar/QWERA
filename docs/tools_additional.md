@@ -29,4 +29,4 @@ Computes wind-frequency matrices from an arbitrary input table (non-DWD datasets
 Converts a custom aggregated wind matrix into WERA-style azimuth/altitude parameter tables for Tool 2.
 
 ## Soil Erodibility Mapper
-Creates a soil-erodibility raster based on soil type/texture and SOM following DIN 19706 logic.
+Creates a soil-erodibility raster based on soil type/texture and SOM following DIN 19706:2013-02 logic.

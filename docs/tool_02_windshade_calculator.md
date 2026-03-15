@@ -6,6 +6,7 @@ Generates wind-direction-specific shadow masks from a parameter table containing
 - Azimuth (°)
 - Altitude (°)
 - Constant (protection class)
+- SAGA's Analyticall Hillshading tool is used. If not installed, internal fallback (slow) will be used.
 
 For each row, a directional shadow mask raster is computed (octant-based horizon scan).
 

@@ -6,6 +6,9 @@
 - QGIS 3.28 – 3.44 (tested primarily with QGIS 3.44)
 - Windows 11 (Linux/macOS not tested)
 
+## Requirements
+It is recommended to install the SAGA tools beforehand.
+
 ## Installation from ZIP
 1. In QGIS, open **Plugins → Manage and Install Plugins → Install from ZIP**
 2. Select the QWERA toolbox ZIP file and click **Install Plugin** (do not unzip)

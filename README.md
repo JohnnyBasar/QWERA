@@ -25,6 +25,18 @@ and tested for version 3.44 (Solothurn). This version is free of heavy dependenc
 
 ---
 
+## Documentation
+
+The full user manual and detailed technical documentation are provided in the
+`docs/` directory.
+
+👉 Start here: [`docs/index.md`](docs/index.md)
+
+Version history and changes are documented in [CHANGELOG.md](CHANGELOG.md).
+
+
+---
+
 ## Overview
 
 ![QWERA cover / logo](docs/img/cover_logo.png)
@@ -64,17 +76,6 @@ The QWERA toolbox is organized into additional tools (data preparation) and a ma
 
 ---
 
-## Documentation
-
-The full user manual and detailed technical documentation are provided in the
-`docs/` directory.
-
-👉 Start here: [`docs/index.md`](docs/index.md)
-
-Version history and changes are documented in [CHANGELOG.md](CHANGELOG.md).
-
-
----
 
 ## References
 
